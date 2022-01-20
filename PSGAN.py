@@ -25,11 +25,14 @@ canonicT = [transforms.RandomCrop(opt.imageSize),
 mirrorT = []
 
 if bMirror:
-    mirrorT += [transforms.RandomVerticalFlip(),transforms.RandomHorizontalFlip()]
-transformTex=transforms.Compose(mirrorT+canonicT)
-dataset = TextureDataset(opt.texturePath,transformTex,opt.textureScale)
-dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batchSize,
-                                         shuffle=True, num_workers=int(opt.workers))
+    mirrorT += [transforms.RandomVerticalFlip(), transforms.RandomHorizontalFlip()]
+transformTex = transforms.Compose(mirrorT+canonicT)
+dataset = TextureDataset(opt.texturePath, transformTex, opt.textureScale)
+dataloader = torch.utils.data.DataLoader(dataset,
+                                         batch_size=opt.batchSize,
+                                         shuffle=True,
+                                         num_workers=int(opt.workers)
+                                         )
 
 N = 0
 ngf = int(opt.ngf)
@@ -43,16 +46,16 @@ if opt.LS:
     desc += '_LS'
 if bMirror:
     desc += '_mirror'
-if opt.textureScale !=1:
+if opt.textureScale != 1:
     desc += "_scale"+str(opt.textureScale)
 netD = Discriminator(ndf, opt.nDepD, bSigm=not opt.LS and not opt.WGAN)
 
 ##################################
-netG =NetG(ngf, nDep, nz)
+netG = NetG(ngf, nDep, nz)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("device", device)
 
-Gnets=[netG]
+Gnets = [netG]
 if opt.zPeriodic:
     Gnets += [learnedWN]
 
@@ -76,8 +79,11 @@ noise = noise.to(device)
 fixnoise = fixnoise.to(device)
 
 # setup optimizer
-optimizerD = optim.Adam(netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999)) # netD.parameters()
-optimizerU = optim.Adam([param for net in Gnets for param in list(net.parameters())], lr=opt.lr, betas=(opt.beta1, 0.999))
+optimizerD = optim.Adam(netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))  # netD.parameters()
+optimizerU = optim.Adam([param for net in Gnets for param in list(net.parameters())],
+                        lr=opt.lr,
+                        betas=(opt.beta1, 0.999)
+                        )
 
 for epoch in range(opt.niter):
     for i, data in enumerate(dataloader, 0):
@@ -86,7 +92,7 @@ for epoch in range(opt.niter):
         # train with real
         netD.zero_grad()
         text, _ = data
-        text=text.to(device)
+        text = text.to(device)
         output = netD(text)
         errD_real = criterion(output, output.detach()*0+real_label)
         errD_real.backward()
@@ -102,12 +108,12 @@ for epoch in range(opt.niter):
         D_G_z1 = output.mean()
         errD = errD_real + errD_fake
         if opt.WGAN:
-            gradient_penalty = calc_gradient_penalty(netD, text, fake[:text.shape[0]]) #for case fewer text images
+            gradient_penalty = calc_gradient_penalty(netD, text, fake[:text.shape[0]])  # for case fewer text images
             gradient_penalty.backward()
 
         optimizerD.step()
         if i > 0 and opt.WGAN and i % opt.dIter != 0:
-            continue # critic steps to 1 GEN steps
+            continue  # critic steps to 1 GEN steps
 
         for net in Gnets:
             net.zero_grad()
@@ -122,20 +128,26 @@ for epoch in range(opt.niter):
         optimizerU.step()
 
         print('[%d/%d][%d/%d] D(x): %.4f D(G(z)): %.4f / %.4f time %.4f'
-              % (epoch, opt.niter, i, len(dataloader),D_x, D_G_z1, D_G_z2,time.time()-t0))
+              % (epoch, opt.niter, i, len(dataloader), D_x, D_G_z1, D_G_z2, time.time()-t0))
 
-        ### RUN INFERENCE AND SAVE LARGE OUTPUT MOSAICS
+        # RUN INFERENCE AND SAVE LARGE OUTPUT MOSAICS
         if i % 100 == 0:
-            vutils.save_image(text,    '%s/real_textures.jpg' % opt.outputFolder,  normalize=True)
-            vutils.save_image(fake,'%s/generated_textures_%03d_%s.jpg' % (opt.outputFolder, epoch,desc),normalize=True)
+            vutils.save_image(text, '%s/real_textures.jpg' % opt.outputFolder,  normalize=True)
+            vutils.save_image(fake,
+                              '%s/generated_textures_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
+                              normalize=True
+                              )
 
-            fixnoise=setNoise(fixnoise)
+            fixnoise = setNoise(fixnoise)
 
-            vutils.save_image(fixnoise.view(-1,1,fixnoise.shape[2],fixnoise.shape[3]), '%s/noiseBig_epoch_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),normalize=True)
+            vutils.save_image(fixnoise.view(-1, 1, fixnoise.shape[2], fixnoise.shape[3]),
+                              '%s/noiseBig_epoch_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
+                              normalize=True
+                              )
 
             netG.eval()
             with torch.no_grad():
-                fakeBig=netG(fixnoise)
+                fakeBig = netG(fixnoise)
 
             vutils.save_image(fakeBig, '%s/big_texture_%03d_%s.jpg' % (opt.outputFolder, epoch, desc), normalize=True)
             netG.train()
