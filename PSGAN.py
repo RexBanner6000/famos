@@ -148,8 +148,10 @@ for epoch in range(opt.niter):
             netG.eval()
             with torch.no_grad():
                 fakeBig = netG(fixnoise)
+                fakeSingle = netG(fixnoise[0][None])
 
-            vutils.save_image(fakeBig, '%s/big_texture_%03d_%s.jpg' % (opt.outputFolder, epoch, desc), normalize=True)
+            vutils.save_image(fakeBig, f'{opt.outputFolder}/big_texture_{epoch:03d}_{desc}.jpg', normalize=True)
+            vutils.save_image(fakeSingle, f'{opt.outputFolder}/single_texture_{epoch:03d}_{desc}.jpg', normalize=True)
             netG.train()
 
             # OPTIONAL
