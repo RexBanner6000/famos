@@ -4,7 +4,7 @@ import datetime
 import os
 parser = argparse.ArgumentParser()
 
-##data path and loading parameters
+# data path and loading parameters
 parser.add_argument('--texturePath', required=True, help='path to texture image folder')
 parser.add_argument('--contentPath', default='', help='path to content image folder')
 parser.add_argument('--mirror', type=bool, default=False,help='augment style image distribution for mirroring')
@@ -14,7 +14,7 @@ parser.add_argument('--testImage',default='None', help='path to test image file'
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=0)#0 means a single main process
 parser.add_argument('--outputFolder', default='.', help='folder to output images and model checkpoints')
 parser.add_argument('--trainOverfit', type=bool, default=False,help='always use same image and same templates -- better in sample, worse out of sample')
-##neural network parameters
+# neural network parameters
 parser.add_argument('--batchSize', type=int, default=8, help='input batch size')
 parser.add_argument('--imageSize', type=int, default=160, help='the height / width of the input image to network')
 parser.add_argument('--ngf', type=int, default=80,help='number of channels of generator (at largest spatial resolution)')
@@ -29,7 +29,7 @@ parser.add_argument('--blendMode', type=int, default=0,help='type of blending fo
 parser.add_argument('--refine', type=bool, default=False,help='second unet after initial templates')
 parser.add_argument('--skipConnections', type=bool, default=True,help='skip connections in  Unet -- allows better content reconstruct')
 parser.add_argument('--Ubottleneck', type=int, default=-1,help='Unet bottleneck, leave negative for default wide bottleneck')
-##regularization and loss criteria weighting parameters
+# regularization and loss criteria weighting parameters
 parser.add_argument('--fContent', type=float, default=1.0,help='weight of content reconstruction loss')
 parser.add_argument('--fAdvM', type=float, default=.0,help='weight of I_M adversarial loss')
 parser.add_argument('--fContentM', type=float, default=1.0,help='weight of I_M content reconstruction loss')
@@ -40,13 +40,13 @@ parser.add_argument('--fEntropy', type=float, default=.5,help='regularization we
 parser.add_argument('--fDiversity', type=float, default=1,help='regularization weight of diversity of used templates')
 parser.add_argument('--WGAN', type=bool, default=False,help='use WGAN-GP adversarial loss')
 parser.add_argument('--LS', type=bool, default=False,help='use least squares GAN adversarial loss')
-##Optimisation parametersfalp
+# Optimisation parametersfalp
 parser.add_argument('--niter', type=int, default=100, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.0002, help='learning rate, default=0.0002')
 parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5')
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 parser.add_argument('--dIter', type=int, default=1, help='number of Discriminator steps -- for 1 Generator step')
-##noise parameters
+# noise parameters
 parser.add_argument('--zGL', type=int, default=20,help='noise channels, identical on every spatial position')
 parser.add_argument('--zLoc', type=int, default=10,help='noise channels, sampled on each spatial position')
 parser.add_argument('--zPeriodic', type=int, default=0,help='periodic spatial waves')
@@ -56,7 +56,7 @@ opt = parser.parse_args()
 nDep = opt.nDep
 ##noise added to the deterministic content mosaic modules -- in some cases it makes a difference, other times can be ignored
 bfirstNoise=opt.firstNoise
-nz=opt.zGL+opt.zLoc+opt.zPeriodic
+nz = opt.zGL + opt.zLoc + opt.zPeriodic
 bMirror=opt.mirror##make for a richer distribution, 4x times more data
 opt.fContentM *= opt.fContent
 

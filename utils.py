@@ -265,22 +265,22 @@ if opt.zPeriodic:
 else:
     learnedWN = None
 
-##inplace set noise
+# inplace set noise
 def setNoise(noise):
-    noise=noise.detach()*1.0
+    noise = noise.detach() * 1.0
     noise.uniform_(-1, 1)  # normal_(0, 1)
     if opt.zGL:
-        noise[:, :opt.zGL] = noise[:, :opt.zGL, :1, :1].repeat(1, 1,noise.shape[2],noise.shape[3])
+        noise[:, :opt.zGL] = noise[:, :opt.zGL, :1, :1].repeat(1, 1, noise.shape[2], noise.shape[3])
     if opt.zPeriodic:
-        xv, yv = np.meshgrid(np.arange(noise.shape[2]), np.arange(noise.shape[3]),indexing='ij')
+        xv, yv = np.meshgrid(np.arange(noise.shape[2]), np.arange(noise.shape[3]), indexing='ij')
         c = torch.FloatTensor(np.concatenate([xv[np.newaxis], yv[np.newaxis]], 0)[np.newaxis])
         c = c.repeat(noise.shape[0], opt.zPeriodic, 1, 1)
         c = c.to(device)
-        # #now c has canonic coordinate system -- multiply by wave numbers
+        # now c has canonic coordinate system -- multiply by wave numbers
         raw = learnedWN(c,noise[:, :opt.zGL])
-        #random offset
+        # random offset
         offset = (noise[:, -opt.zPeriodic:, :1, :1] * 1.0).uniform_(-1, 1) * 6.28
         offset = offset.repeat(1, 1, noise.shape[2], noise.shape[3])
         wave = torch.sin(raw[:, ::2] + raw[:, 1::2] + offset)
-        noise[:,-opt.zPeriodic:]=wave
+        noise[:, -opt.zPeriodic:] = wave
     return noise
