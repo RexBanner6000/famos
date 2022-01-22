@@ -101,6 +101,9 @@ for epoch in range(opt.niter):
         # train with fake
         noise = setNoise(noise)
         fake = netG(noise)
+        # TODO: Edit this so a single fake texture 1/2 the size of the real texture is generated then superimpose on
+        # the real texture samples and then pass that through the discriminator
+
         output = netD(fake.detach())
         errD_fake = criterion(output, output.detach()*0+fake_label)
         errD_fake.backward()
@@ -148,10 +151,11 @@ for epoch in range(opt.niter):
             netG.eval()
             with torch.no_grad():
                 fakeBig = netG(fixnoise)
-                fakeSingle = netG(fixnoise[0][None])
+                # bignoise = setNoise(bignoise)
+                # fakeSingle = netG(bignoise[0][None])
 
             vutils.save_image(fakeBig, f'{opt.outputFolder}/big_texture_{epoch:03d}_{desc}.jpg', normalize=True)
-            vutils.save_image(fakeSingle, f'{opt.outputFolder}/single_texture_{epoch:03d}_{desc}.jpg', normalize=True)
+            # vutils.save_image(fakeSingle, f'{opt.outputFolder}/single_texture_{epoch:03d}_{desc}.jpg', normalize=True)
             netG.train()
 
             # OPTIONAL

@@ -6,10 +6,11 @@ from prepareTemplates import getTemplateMixImage
 
 norma = nn.BatchNorm2d
 
+
 def calc_gradient_penalty(netD, real_data, fake_data):
     from torch import autograd
-    LAMBDA=1
-    BATCH_SIZE=fake_data.shape[0]
+    LAMBDA = 1
+    BATCH_SIZE = fake_data.shape[0]
     alpha = torch.rand(BATCH_SIZE).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
     device=real_data.get_device()
     alpha = alpha.to(device)
@@ -46,7 +47,7 @@ class Discriminator(nn.Module):
                 nf=1
             else:
                 nf = ndf*2**i
-            layers+=[nn.Conv2d(of, nf, 5, 2, 2)]##needs input 161 #hmm, also worls loke this
+            layers+=[nn.Conv2d(of, nf, 5, 2, 2)]  # needs input 161 #hmm, also worls loke this
             if i !=0 and i !=nDep-1:
                 if True:#not opt.WGAN:
                     layers+=[norma(nf )]
