@@ -20,54 +20,56 @@ class TextureDataset(Dataset):
     def __init__(self, img_path, transform=None,scale=1):
         self.img_path = img_path
         self.transform = transform    
-        if True:##ok this is for 1 worker only!
+        if True:  # ok this is for 1 worker only!
             names = os.listdir(img_path)
             self.X_train =[]
             for n in names:
-                name =self.img_path + n
+                name = self.img_path + n
                 try:
                     img = Image.open(name)
                     try:
-                        img = img.convert('RGB')##fixes truncation???
+                        img = img.convert('RGB')  # fixes truncation???
                     except:
                         pass
-                    if scale!=1:
-                        img=img.resize((int(img.size[0]*scale),int(img.size[1]*scale)),PIL.Image.LANCZOS)
+                    if scale != 1:
+                        img = img.resize((int(img.size[0]*scale), int(img.size[1]*scale)), PIL.Image.LANCZOS)
                 except Exception as e:
-                    print (e,name)
+                    print(e, name)
                     continue
 
-                self.X_train +=[img]
-                print (n,"img added", img.size,"total length",len(self.X_train))
+                self.X_train += [img]
+                print(n, "img added", img.size, "total length", len(self.X_train))
                 if len(self.X_train) > 4000:
-                    break ##usually want to avoid so many files
+                    break  # usually want to avoid so many files
 
-        ##this affects epoch length..
+        # this affects epoch length..
         if len(self.X_train) < 2000:
             c = int(2000/len(self.X_train))
-            self.X_train*=c
+            self.X_train *= c
 
     def __getitem__(self, index):
         if False:
-            name =self.img_path + self.X_train[index]
+            name = self.img_path + self.X_train[index]
             img = Image.open(name)
         else:
-            img= self.X_train[index]#np.random.randint(len(self.X_train))   
+            img = self.X_train[index]  # np.random.randint(len(self.X_train))
         if self.transform is not None:
             img2 = self.transform(img)        
-        label =0
-        #print ('data returned',img2.data.shape)
+        label = 0
+        # print ('data returned',img2.data.shape)
         return img2, label
 
     def __len__(self):
         return len(self.X_train)
 
-def GaussKernel(sigma,wid=None):
+
+def GaussKernel(sigma, wid=None):
     if wid is None:
-        wid =2 * 2 * sigma + 1+10
+        wid = 2 * 2 * sigma + 1+10
 
     def gaussian(x, mu, sigma):
         return np.exp(-(float(x) - float(mu)) ** 2 / (2 * sigma ** 2))
+
     def make_kernel(sigma):
         # kernel radius = 2*sigma, but minimum 3x3 matrix
         kernel_size = max(3, int(wid))
@@ -81,20 +83,22 @@ def GaussKernel(sigma,wid=None):
         return kernel
     ker = make_kernel(sigma)
   
-    a = np.zeros((3,3,ker.shape[0],ker.shape[0])).astype(dtype=np.float32)
+    a = np.zeros((3, 3, ker.shape[0], ker.shape[0])).astype(dtype=np.float32)
     for i in range(3):
-        a[i,i] = ker
+        a[i, i] = ker
     return a
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 gsigma=1.##how much to blur - larger blurs more ##+"_sig"+str(gsigma)
 gwid=61
-kernel = torch.FloatTensor(GaussKernel(gsigma,wid=gwid)).to(device)##slow, pooling better
+kernel = torch.FloatTensor(GaussKernel(gsigma,wid=gwid)).to(device)  # slow, pooling better
+
 def avgP(x):
-    return nn.functional.avg_pool2d(x,int(16))
+    return nn.functional.avg_pool2d(x, int(16))
+
 def avgG(x):
-    pad=nn.functional.pad(x,(gwid//2,gwid//2,gwid//2,gwid//2),'reflect')##last 2 dimensions padded
-    return nn.functional.conv2d(pad,kernel)##reflect pad should avoid border artifacts
+    pad=nn.functional.pad(x, (gwid//2, gwid//2, gwid//2, gwid//2), 'reflect')  # last 2 dimensions padded
+    return nn.functional.conv2d(pad, kernel)  # reflect pad should avoid border artifacts
 
 def plotStats(a,path):
     import matplotlib
@@ -104,19 +108,19 @@ def plotStats(a,path):
     names = ["pTrue", "pFake", "pFake2", "contentLoss I", "contentLoss I_M", "norm(alpha)", "entropy(A)", "tv(A)", "tv(alpha)", "diversity(A)"]
     win=50##for running avg
     for i in range(a.shape[1]):
-        if i <3:
-            ix=0
-        elif i <5:
-            ix =1
-        elif i >=5:
-            ix=i-3
-        plt.subplot(a.shape[1]-3+1,1,ix+1)
-        plt.plot(a[:,i],label= "err"+str(i)+"_"+names[i])
+        if i < 3:
+            ix = 0
+        elif i < 5:
+            ix = 1
+        elif i >= 5:
+            ix = i-3
+        plt.subplot(a.shape[1]-3+1, 1, ix+1)
+        plt.plot(a[:, i], label="err"+str(i)+"_"+names[i])
         try:
-            av=np.convolve(a[:,i], np.ones((win,))/win, mode='valid')
-            plt.plot(av,label= "av"+str(i)+"_"+names[i],lw=3)
+            av=np.convolve(a[:, i], np.ones((win,))/win, mode='valid')
+            plt.plot(av, label="av"+str(i)+"_"+names[i], lw=3)
         except Exception as e:
-            print ("ploterr",e)
+            print("ploterr", e)
         plt.legend(loc="lower left")
     plt.savefig(path+"plot.png")
 
