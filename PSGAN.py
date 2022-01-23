@@ -73,12 +73,13 @@ NZ = opt.imageSize//2**nDep
 noise = torch.FloatTensor(opt.batchSize, nz, (NZ+1)//2, (NZ+1)//2)
 fixnoise = torch.FloatTensor(opt.batchSize, nz, NZ*4, NZ*4)
 
-pad = (32, 32, 32, 32)
-blank = torch.FloatTensor(opt.batchSize, 3, 96, 96)
+border = (opt.imageSize - ((NZ + 1) // 2) * 2 ** nDep) // 2
+pad = (border, border, border, border)
+blank = torch.FloatTensor(opt.batchSize, 3, ((NZ + 1) // 2) * 2 ** nDep, ((NZ + 1) // 2) * 2 ** nDep)
 blank = torch.nn.functional.pad(blank, pad, 'constant', 1).to(device)
 
 fake_mask = torch.add(torch.zeros(opt.batchSize, 1, (NZ+1)//2, (NZ+1)//2), 1)
-fake_mask = torch.nn.functional.pad(fake_mask, (1, 1, 1, 1), 'constant', 0).to(device)
+fake_mask = torch.nn.functional.pad(fake_mask, (NZ // 4, NZ // 4, NZ // 4, NZ // 4), 'constant', 0).to(device)
 
 real_label = 1
 fake_label = 0
@@ -125,7 +126,7 @@ for epoch in range(opt.niter):
         D_G_z1 = output.mean()
         errD = errD_real + errD_fake
         if opt.WGAN:
-            gradient_penalty = calc_gradient_penalty(netD, text, fake[:text.shape[0]])  # for case fewer text images
+            gradient_penalty = calc_gradient_penalty(netD, text, fake_overlay[:text.shape[0]])  # for case fewer text images
             gradient_penalty.backward()
 
         optimizerD.step()
