@@ -17,12 +17,12 @@ class TextureDataset(Dataset):
         PIL transforms
     """
 
-    def __init__(self, img_path, transform=None,scale=1):
+    def __init__(self, img_path, transform=None, scale=1):
         self.img_path = img_path
         self.transform = transform    
         if True:  # ok this is for 1 worker only!
             names = os.listdir(img_path)
-            self.X_train =[]
+            self.X_train = []
             for n in names:
                 name = self.img_path + n
                 try:

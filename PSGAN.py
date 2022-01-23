@@ -69,8 +69,16 @@ for net in [netD] + Gnets:
     print(net)
 
 NZ = opt.imageSize//2**nDep
-noise = torch.FloatTensor(opt.batchSize, nz, NZ, NZ)
+# noise = torch.FloatTensor(opt.batchSize, nz, NZ//2, NZ//2)
+noise = torch.FloatTensor(opt.batchSize, nz, (NZ+1)//2, (NZ+1)//2)
 fixnoise = torch.FloatTensor(opt.batchSize, nz, NZ*4, NZ*4)
+
+pad = (32, 32, 32, 32)
+blank = torch.FloatTensor(opt.batchSize, 3, 96, 96)
+blank = torch.nn.functional.pad(blank, pad, 'constant', 1).to(device)
+
+fake_mask = torch.add(torch.FloatTensor(opt.batchSize, 3, 96, 96), 1)
+fake_mask = torch.nn.functional.pad(blank, pad, 'constant', 0).to(device)
 
 real_label = 1
 fake_label = 0
@@ -104,8 +112,14 @@ for epoch in range(opt.niter):
         # TODO: Edit this so a single fake texture 1/2 the size of the real texture is generated then superimpose on
         # the real texture samples and then pass that through the discriminator
 
-        output = netD(fake.detach())
+        fake_padded = torch.nn.functional.pad(fake, pad, 'constant', 0)
+        fake_overlay = torch.add(torch.mul(text, blank), fake_padded)
+
+        # TODO: Look at normalising both before combining
+
+        output = netD(fake_overlay.detach())
         errD_fake = criterion(output, output.detach()*0+fake_label)
+        # errD_fake = criterion(output, fake_mask)
         errD_fake.backward()
 
         D_G_z1 = output.mean()
@@ -123,7 +137,9 @@ for epoch in range(opt.niter):
 
         noise = setNoise(noise)
         fake = netG(noise)
-        output = netD(fake)
+        fake_padded = torch.nn.functional.pad(fake, pad, 'constant', 0)
+        fake_overlay = torch.add(torch.mul(text, blank), fake_padded)
+        output = netD(fake_overlay)
         loss_adv = criterion(output, output.detach()*0+real_label)
         D_G_z2 = output.mean()
         errG = loss_adv
@@ -138,6 +154,13 @@ for epoch in range(opt.niter):
             vutils.save_image(text, '%s/real_textures.jpg' % opt.outputFolder,  normalize=True)
             vutils.save_image(fake,
                               '%s/generated_textures_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
+                              normalize=True
+                              )
+            vutils.save_image(fake_overlay,
+                              '%s/overlaid_textures_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
+                              )
+            vutils.save_image(fake_padded,
+                              '%s/padded_textures_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
                               normalize=True
                               )
 
@@ -160,6 +183,6 @@ for epoch in range(opt.niter):
 
             # OPTIONAL
             # save/load model for later use if desired
-            outModelName = '%s/netG_epoch_%d_%s.pth' % (opt.outputFolder, epoch*0, desc)
-            torch.save(netG.state_dict(), outModelName)
-            netG.load_state_dict(torch.load(outModelName))
+            # outModelName = '%s/netG_epoch_%d_%s.pth' % (opt.outputFolder, epoch*0, desc)
+            # torch.save(netG.state_dict(), outModelName)
+            # netG.load_state_dict(torch.load(outModelName))
