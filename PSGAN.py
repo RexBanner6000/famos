@@ -77,8 +77,8 @@ pad = (32, 32, 32, 32)
 blank = torch.FloatTensor(opt.batchSize, 3, 96, 96)
 blank = torch.nn.functional.pad(blank, pad, 'constant', 1).to(device)
 
-fake_mask = torch.add(torch.FloatTensor(opt.batchSize, 3, 96, 96), 1)
-fake_mask = torch.nn.functional.pad(blank, pad, 'constant', 0).to(device)
+fake_mask = torch.add(torch.zeros(opt.batchSize, 1, (NZ+1)//2, (NZ+1)//2), 1)
+fake_mask = torch.nn.functional.pad(fake_mask, (1, 1, 1, 1), 'constant', 0).to(device)
 
 real_label = 1
 fake_label = 0
