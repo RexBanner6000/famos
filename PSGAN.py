@@ -158,7 +158,7 @@ for epoch in range(opt.niter):
                               )
             vutils.save_image(fake_overlay,
                               '%s/overlaid_textures_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
-                              )
+                              normalize=True)
             vutils.save_image(fake_padded,
                               '%s/padded_textures_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
                               normalize=True
