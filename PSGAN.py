@@ -75,7 +75,7 @@ fixnoise = torch.FloatTensor(opt.batchSize, nz, NZ*4, NZ*4)
 
 border = (opt.imageSize - ((NZ + 1) // 2) * 2 ** nDep) // 2
 pad = (border, border, border, border)
-blank = torch.FloatTensor(opt.batchSize, 3, ((NZ + 1) // 2) * 2 ** nDep, ((NZ + 1) // 2) * 2 ** nDep)
+blank = torch.zeros(opt.batchSize, 3, ((NZ + 1) // 2) * 2 ** nDep, ((NZ + 1) // 2) * 2 ** nDep)
 blank = torch.nn.functional.pad(blank, pad, 'constant', 1).to(device)
 
 fake_mask = torch.add(torch.zeros(opt.batchSize, 1, (NZ+1)//2, (NZ+1)//2), 1)
@@ -158,15 +158,11 @@ for epoch in range(opt.niter):
                               normalize=True
                               )
             vutils.save_image(fake_overlay,
-                              '%s/overlaid_textures_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
-                              normalize=True)
-            vutils.save_image(fake_padded,
-                              '%s/padded_textures_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
+                              '%s/overlaid_normalised_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
                               normalize=True
                               )
 
             fixnoise = setNoise(fixnoise)
-
             vutils.save_image(fixnoise.view(-1, 1, fixnoise.shape[2], fixnoise.shape[3]),
                               '%s/noiseBig_epoch_%03d_%s.jpg' % (opt.outputFolder, epoch, desc),
                               normalize=True
@@ -187,3 +183,6 @@ for epoch in range(opt.niter):
             # outModelName = '%s/netG_epoch_%d_%s.pth' % (opt.outputFolder, epoch*0, desc)
             # torch.save(netG.state_dict(), outModelName)
             # netG.load_state_dict(torch.load(outModelName))
+
+    print(f"Finished epoch {epoch}")
+    print()
