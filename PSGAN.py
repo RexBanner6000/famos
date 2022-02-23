@@ -85,6 +85,13 @@ optimizerU = optim.Adam([param for net in Gnets for param in list(net.parameters
                         betas=(opt.beta1, 0.999)
                         )
 
+if opt.modelFile is not None:
+    print(f"Loading previous model file {opt.modelFile}...")
+    netG.load_state_dict(torch.load(opt.modelFile))
+    print("Loaded successfully")
+
+#TODO: Print mean discriminator and generator scores at the end of each epoch, print graph to image at completion
+
 for epoch in range(opt.niter):
     for i, data in enumerate(dataloader, 0):
         t0 = time.time()

@@ -79,6 +79,9 @@ parser.add_argument('--zGL', type=int, default=20, help='noise channels, identic
 parser.add_argument('--zLoc', type=int, default=10, help='noise channels, sampled on each spatial position')
 parser.add_argument('--zPeriodic', type=int, default=0, help='periodic spatial waves')
 parser.add_argument('--firstNoise', type=bool, default=False, help='stochastic noise at bottleneck or input of Unet')
+
+# load old model
+parser.add_argument('--modelFile', default=None, help='path to existing model file')
 opt = parser.parse_args()
 
 nDep = opt.nDep
