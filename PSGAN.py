@@ -90,7 +90,9 @@ if opt.modelFile is not None:
     netG.load_state_dict(torch.load(opt.modelFile))
     print("Loaded successfully")
 
-#TODO: Print mean discriminator and generator scores at the end of each epoch, print graph to image at completion
+# TODO: Print mean discriminator and generator scores at the end of each epoch, print graph to image at completion
+
+#TODO Save discriminator model as well
 
 for epoch in range(opt.niter):
     for i, data in enumerate(dataloader, 0):
