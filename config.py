@@ -81,7 +81,8 @@ parser.add_argument('--zPeriodic', type=int, default=0, help='periodic spatial w
 parser.add_argument('--firstNoise', type=bool, default=False, help='stochastic noise at bottleneck or input of Unet')
 
 # load old model
-parser.add_argument('--modelFile', default=None, help='path to existing model file')
+parser.add_argument('--GenFile', default=None, help='path to existing Generator weights file')
+parser.add_argument('--DiscFile', default=None, help='path to existing Discriminator weights file')
 opt = parser.parse_args()
 
 nDep = opt.nDep

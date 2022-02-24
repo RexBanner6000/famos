@@ -85,14 +85,17 @@ optimizerU = optim.Adam([param for net in Gnets for param in list(net.parameters
                         betas=(opt.beta1, 0.999)
                         )
 
-if opt.modelFile is not None:
-    print(f"Loading previous model file {opt.modelFile}...")
-    netG.load_state_dict(torch.load(opt.modelFile))
+if opt.GenFile is not None:
+    print(f"Loading previous generator weights {opt.GenFile}...")
+    netG.load_state_dict(torch.load(opt.GenFile))
+    print("Loaded successfully")
+
+if opt.DiscFile is not None:
+    print(f"Loading previous discriminator weights {opt.DiscFile}...")
+    netD.load_state_dict(torch.load(opt.DiscFile))
     print("Loaded successfully")
 
 # TODO: Print mean discriminator and generator scores at the end of each epoch, print graph to image at completion
-
-#TODO Save discriminator model as well
 
 for epoch in range(opt.niter):
     for i, data in enumerate(dataloader, 0):
@@ -110,8 +113,6 @@ for epoch in range(opt.niter):
         # train with fake
         noise = setNoise(noise)
         fake = netG(noise)
-        # TODO: Edit this so a single fake texture 1/2 the size of the real texture is generated then superimpose on
-        # the real texture samples and then pass that through the discriminator
 
         output = netD(fake.detach())
         errD_fake = criterion(output, output.detach()*0+fake_label)
@@ -169,6 +170,10 @@ for epoch in range(opt.niter):
 
             # OPTIONAL
             # save/load model for later use if desired
-            outModelName = '%s/netG_epoch_%d_%s.pth' % (opt.outputFolder, epoch*0, desc)
-            torch.save(netG.state_dict(), outModelName)
-            netG.load_state_dict(torch.load(outModelName))
+            outGeneratorName = f'{opt.outputFolder}/netG.pth'
+            torch.save(netG.state_dict(), outGeneratorName)
+            netG.load_state_dict(torch.load(outGeneratorName))
+
+            outDiscriminatorName = f'{opt.outputFolder}/netD.pth'
+            torch.save(netD.state_dict(), outDiscriminatorName)
+            netD.load_state_dict(torch.load(outDiscriminatorName))
